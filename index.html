@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | AI Assistant</title>
+    <meta name="description" content="AMAX is an intelligent AI assistant designed for quick answers, productivity, and conversations.">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page" data-pro-user="{{ 'true' if pro_active else 'false' }}">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <header class="topbar">
+        <nav class="nav container">
+            <a href="/" class="logo" aria-label="AMAX home">
+                <span class="logo-mark"><img src="{{ url_for('static', filename='uploads/amax-logo.jpeg') }}" alt="AMAX logo"></span>
+                <span>AMAX</span>
+            </a>
+
+            <div class="nav-links">
+                <a href="#features" data-i18n="features">Features</a>
+                <a href="#about" data-i18n="about">About</a>
+                <a href="/pages" data-i18n="explore">Explore</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('pricing') }}" data-i18n="pricing">Pricing</a>
+                {% endif %}
+                <a href="{{ url_for('help_desk') }}" data-i18n="helpDesk">Help Desk</a>
+                <a href="/contact" data-i18n="contact">Contact</a>
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('profile') }}" class="nav-btn nav-login"><i class="fas fa-user-circle"></i> <span data-i18n="profile">Profile</span></a>
+                    <a href="{{ url_for('chat') }}" class="nav-btn nav-signup"><i class="fas fa-comments"></i> <span data-i18n="chat">Chat</span></a>
+                    <a href="{{ url_for('logout') }}" class="nav-btn nav-login"><i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Logout</span></a>
+                {% else %}
+                    <a href="/login" class="nav-btn nav-login" data-i18n="login">Login</a>
+                    <a href="/signup" class="nav-btn nav-signup" data-i18n="signUp">Sign Up</a>
+                {% endif %}
+                <div class="home-theme-menu">
+                    <button id="home-theme-button" class="home-theme-button" type="button" aria-expanded="false" aria-controls="home-theme-panel" title="Choose home theme">
+                        <i class="fas fa-palette"></i><span data-i18n="theme">Theme</span>
+                    </button>
+                    <div id="home-theme-panel" class="home-theme-panel" hidden>
+                        <strong data-i18n="chooseTheme">Choose theme</strong>
+                        <button type="button" data-home-theme="film"><i class="fas fa-film"></i> <span data-i18n="filmy">Filmy</span></button>
+                        <button type="button" data-home-theme="professional" class="pro-theme-option" {% if not pro_active %}aria-disabled="true"{% endif %}><i class="fas fa-briefcase"></i> <span data-i18n="professional">Professional</span>{% if not pro_active %}<small>PRO <i class="fas fa-lock"></i></small>{% endif %}</button>
+                        <button type="button" data-home-theme="normal"><i class="fas fa-circle-half-stroke"></i> <span data-i18n="normal">Normal</span></button>
+                        <button type="button" data-home-theme="ai" class="pro-theme-option" {% if not pro_active %}aria-disabled="true"{% endif %}><i class="fas fa-microchip"></i> <span data-i18n="aiTheme">AI Theme</span>{% if not pro_active %}<small>PRO <i class="fas fa-lock"></i></small>{% endif %}</button>
+                        <strong class="language-heading" data-i18n="language">Language</strong>
+                        <div class="language-options" role="group" aria-label="Language">
+                            <button type="button" data-site-language="mr">मराठी</button>
+                            <button type="button" data-site-language="hi">हिन्दी</button>
+                            <button type="button" data-site-language="en">English</button>
+                            <button type="button" data-site-language="ta">தமிழ்</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container main-shell">
+        <section class="hero reveal">
+            <div class="hero-copy">
+                <div class="pill-row">
+                    <span class="top-pill" data-i18n="deepResearch">Deep Research</span>
+                    <span class="top-pill muted" data-i18n="openExperience">OpenAI-style experience</span>
+                </div>
+                <span class="eyebrow" data-i18n="nextGen">NEXT-GEN AI EXPERIENCE</span>
+                <h1 data-i18n="heroTitle">Build smarter with <span>AMAX AI</span></h1>
+                <p>
+                    A premium AI workspace for research, writing, planning, coding, and strategy.
+                    Designed to feel fast, elegant, and surprisingly intelligent.
+                </p>
+
+                <div class="cta-buttons">
+                    <a href="/signup" class="btn btn-primary" data-i18n="getStarted">Get Started Free</a>
+                    <a href="/pages" class="btn btn-secondary"><span data-i18n="explore">Explore</span> {{ page_count }}+ <span data-i18n="pages">Pages</span></a>
+                </div>
+
+                <ul class="trust-list">
+                    <li>Fast reasoning</li>
+                    <li>Secure workspace</li>
+                    <li>Action-ready outputs</li>
+                </ul>
+            </div>
+
+            <div class="hero-visual" aria-label="AMAX dashboard preview">
+                <div class="hero-scene" aria-label="AMAX Hero Protocol animation">
+                    <div class="scene-grid"></div>
+                    <div class="energy-ring energy-ring-one"></div>
+                    <div class="energy-ring energy-ring-two"></div>
+                    <div class="motion-streak streak-one"></div>
+                    <div class="motion-streak streak-two"></div>
+                    <div class="motion-streak streak-three"></div>
+                    <div class="animated-lion" aria-label="Animated lion character">
+                        <div class="lion-mane"></div>
+                        <div class="lion-body">
+                            <span class="lion-chest"></span>
+                            <span class="lion-paw lion-paw-left"></span>
+                            <span class="lion-paw lion-paw-right"></span>
+                        </div>
+                        <div class="lion-head">
+                            <span class="lion-ear lion-ear-left"></span>
+                            <span class="lion-ear lion-ear-right"></span>
+                            <span class="lion-eye lion-eye-left"></span>
+                            <span class="lion-eye lion-eye-right"></span>
+                            <span class="lion-muzzle">
+                                <span class="lion-nose"></span>
+                                <span class="lion-mouth"></span>
+                            </span>
+                            <span class="lion-whisker lion-whisker-left"></span>
+                            <span class="lion-whisker lion-whisker-right"></span>
+                        </div>
+                    </div>
+                    <div class="amax-hero">
+                        <div class="hero-cape"></div>
+                        <div class="hero-head">
+                            <span class="hero-visor"></span>
+                            <span class="hero-glasses"></span>
+                        </div>
+                        <div class="hero-torso">
+                            <span class="hero-emblem">A</span>
+                            <span class="hero-tie"></span>
+                        </div>
+                        <div class="hero-arm hero-arm-left"></div>
+                        <div class="hero-arm hero-arm-right"></div>
+                        <span class="hero-book">▤</span>
+                        <div class="hero-leg hero-leg-left"></div>
+                        <div class="hero-leg hero-leg-right"></div>
+                    </div>
+                    <div class="hero-caption"><span>AMAX</span> / HERO PROTOCOL</div>
+                </div>
+                <div class="dashboard card-glass">
+                    <div class="dashboard-header">
+                        <span class="dot red"></span>
+                        <span class="dot yellow"></span>
+                        <span class="dot green"></span>
+                    </div>
+                    <div class="model-header">
+                        <span class="model-badge">AMAX-4.1</span>
+                        <span class="status-online">Online</span>
+                    </div>
+                    <div class="message-bubble ai-bubble">Give me a launch strategy for a premium AI product.</div>
+                    <div class="message-bubble user-bubble">Create a roadmap, positioning, and quick brand plan.</div>
+                    <div class="message-bubble ai-bubble small">Done — here are the priorities, audience insights, and immediate next steps.</div>
+                    <div class="insight-bar">
+                        <span>AI status</span>
+                        <strong>Ready</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="showcase reveal">
+            <div class="showcase-header section-heading">
+                <span class="eyebrow">PRODUCTIVITY OS</span>
+                <h2>One workspace for every type of AI work</h2>
+            </div>
+
+            <div class="platform-grid">
+                <div class="platform-card card-glass">
+                    <span class="platform-icon">✦</span>
+                    <h3>Research</h3>
+                    <p>Summaries, insights, and discovery from complex information.</p>
+                </div>
+                <div class="platform-card card-glass">
+                    <span class="platform-icon">⚙</span>
+                    <h3>Automation</h3>
+                    <p>Thoughtful tasks, smart prompts, and repeatable workflows.</p>
+                </div>
+                <div class="platform-card card-glass">
+                    <span class="platform-icon">💬</span>
+                    <h3>Conversation</h3>
+                    <p>Friendly, high-quality responses designed for team and personal use.</p>
+                </div>
+                <div class="platform-card card-glass">
+                    <span class="platform-icon">🧩</span>
+                    <h3>Creation</h3>
+                    <p>Drafting, ideation, writing, and design support in one place.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="features reveal">
+            <div class="section-heading">
+                <span class="eyebrow">WHY AMAX</span>
+                <h2>Built for speed, clarity, and productivity</h2>
+                <p class="section-intro">More than 50 focused app pages for AI workflows, business tasks, learning, automation, and growth.</p>
+            </div>
+
+            <div class="feature-grid">
+                <a href="{{ url_for('feature_detail', slug='intelligent-ai') }}" class="feature-card">
+                    <div class="icon-wrap">🧠</div>
+                    <h3>Intelligent AI</h3>
+                    <p>Advanced reasoning and conversational flow for helpful, accurate responses.</p>
+                </a>
+
+                <a href="{{ url_for('feature_detail', slug='private-secure') }}" class="feature-card">
+                    <div class="icon-wrap">🔒</div>
+                    <h3>Private & Secure</h3>
+                    <p>Your account and conversations stay protected with secure authentication.</p>
+                </a>
+
+                <a href="{{ url_for('feature_detail', slug='conversation-memory') }}" class="feature-card">
+                    <div class="icon-wrap">📚</div>
+                    <h3>Conversation Memory</h3>
+                    <p>Keep clarity across chats with organized and accessible interaction history.</p>
+                </a>
+
+                <a href="{{ url_for('feature_detail', slug='instant-answers') }}" class="feature-card">
+                    <div class="icon-wrap">⚡</div>
+                    <h3>Instant Answers</h3>
+                    <p>Get fast, actionable output for brainstorming, support, and task planning.</p>
+                </a>
+            </div>
+        </section>
+
+        <section class="model-section reveal">
+            <div class="section-heading">
+                <span class="eyebrow">MODEL STACK</span>
+                <h2>Powerful capabilities across real workflows</h2>
+            </div>
+
+            <div class="model-grid">
+                <div class="model-card">
+                    <span class="model-label">01</span>
+                    <h3>Knowledge Assistant</h3>
+                    <p>Understand context and respond with useful, structured guidance.</p>
+                </div>
+                <div class="model-card">
+                    <span class="model-label">02</span>
+                    <h3>Creative Studio</h3>
+                    <p>Plan campaigns, generate ideas, and shape content from scratch.</p>
+                </div>
+                <div class="model-card">
+                    <span class="model-label">03</span>
+                    <h3>Developer Copilot</h3>
+                    <p>Support coding tasks, logic explanations, and smart debugging flow.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="about reveal">
+            <div class="about-panel card-glass">
+                <div>
+                    <span class="eyebrow">ABOUT</span>
+                    <h2>Designed to feel effortless</h2>
+                </div>
+                <p>
+                    AMAX blends modern interface design with practical AI assistance so users can chat,
+                    learn, and work smarter in one clean digital space.
+                </p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card card-glass">
+                    <strong>24/7</strong>
+                    <span>Always ready</span>
+                </div>
+                <div class="stat-card card-glass">
+                    <strong>10x</strong>
+                    <span>Faster work</span>
+                </div>
+                <div class="stat-card card-glass">
+                    <strong>100%</strong>
+                    <span>Modern UX</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="testimonial-section reveal">
+            <div class="section-heading">
+                <span class="eyebrow">TESTIMONIALS</span>
+                <h2>Trusted by fast-moving teams</h2>
+            </div>
+
+            <div class="testimonial-grid">
+                <blockquote class="quote-card">
+                    “AMAX feels like a premium AI workflow system. It helps us think clearly, move faster, and ship better ideas.”
+                    <footer>— Product Lead</footer>
+                </blockquote>
+                <blockquote class="quote-card">
+                    “The interface looks premium, and the workflow is surprisingly useful across research, writing, and planning.”
+                    <footer>— Startup Founder</footer>
+                </blockquote>
+            </div>
+        </section>
+
+        {% if current_user.is_authenticated %}
+        <section class="pricing-section reveal">
+            <div class="section-heading">
+                <span class="eyebrow">PRICING</span>
+                <h2>Simple plans for every stage</h2>
+            </div>
+
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3>Starter</h3>
+                    <div class="price">Free</div>
+                    <ul>
+                        <li>Basic AI chat</li>
+                        <li>Core app access</li>
+                        <li>Quick productivity pages</li>
+                    </ul>
+                    <a href="/signup" class="btn btn-secondary">Try Free</a>
+                </div>
+
+                <div class="pricing-card featured-plan">
+                    <span class="plan-tag">Popular</span>
+                    <h3>Pro</h3>
+                    <div class="price">₹2<span>/mo</span></div>
+                    <ul>
+                        <li>Unlimited chat</li>
+                        <li>Advanced AI pages</li>
+                        <li>Priority workflow tools</li>
+                    </ul>
+                    <a href="/pricing" class="btn btn-primary">Start Pro</a>
+                </div>
+            </div>
+        </section>
+        {% endif %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2026 AMAX. Crafted for a smarter digital experience.</p>
+        <p class="developer-note">AMAX Private Limited | Contact: <a href="mailto:ajaybachkar02@gmail.com">ajaybachkar02@gmail.com</a></p>
+    </footer>
+
+    <script>
+        const revealEls = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        revealEls.forEach(el => observer.observe(el));
+
+        const themeButton = document.getElementById('home-theme-button');
+        const themePanel = document.getElementById('home-theme-panel');
+        const isProUser = document.body.dataset.proUser === 'true';
+        const savedTheme = localStorage.getItem('amax-site-theme') || localStorage.getItem('amax-home-theme') || 'normal';
+
+        function applyHomeTheme(theme) {
+            const allowedThemes = isProUser ? ['film', 'professional', 'normal', 'ai'] : ['film', 'normal'];
+            const selectedTheme = allowedThemes.includes(theme) ? theme : 'normal';
+            document.body.classList.remove('theme-film', 'theme-professional', 'theme-normal', 'theme-ai');
+            document.body.classList.add(`theme-${selectedTheme}`);
+            localStorage.setItem('amax-site-theme', selectedTheme);
+            document.querySelectorAll('[data-home-theme]').forEach(option => {
+                option.classList.toggle('selected', option.dataset.homeTheme === selectedTheme);
+            });
+        }
+
+        applyHomeTheme(savedTheme);
+        themeButton.addEventListener('click', () => {
+            const isOpen = themePanel.hidden;
+            themePanel.hidden = !isOpen;
+            themeButton.setAttribute('aria-expanded', String(isOpen));
+        });
+        document.querySelectorAll('[data-home-theme]').forEach(option => {
+            option.addEventListener('click', () => {
+                if (!isProUser && option.classList.contains('pro-theme-option')) {
+                    window.location.href = '{{ url_for("pricing") }}';
+                    return;
+                }
+                applyHomeTheme(option.dataset.homeTheme);
+                themePanel.hidden = true;
+                themeButton.setAttribute('aria-expanded', 'false');
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

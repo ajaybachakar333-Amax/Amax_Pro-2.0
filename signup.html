@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX - Sign Up</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="auth-page">
+    <div class="auth-shell">
+        <div class="auth-card glow-card reveal">
+            <div class="brand-block">
+                <div class="brand-mark"><img src="{{ url_for('static', filename='uploads/amax-logo.jpeg') }}" alt="AMAX logo"></div>
+                <h1>AMAX</h1>
+                <p>Join the Future of AI</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% if errors %}
+                <div class="flash-message flash-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <ul class="error-list">
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <div class="auth-form-wrap">
+                <h2>Create Account</h2>
+                <p class="auth-subtitle">Start your journey with AMAX AI</p>
+
+                {% if login_otp_pending %}
+                <form method="POST" action="{{ url_for('verify_login_otp') }}" class="auth-form">
+                    <input type="hidden" name="email" value="{{ email }}">
+                    <div class="form-group">
+                        <label for="code"><i class="fas fa-shield-halved"></i> Login OTP</label>
+                        <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter the 6-digit OTP" required autofocus>
+                        <small class="form-hint">Check {{ email }}. This one-time setup code expires in 10 minutes.</small>
+                    </div>
+                    <button type="submit" class="auth-btn"><i class="fas fa-right-to-bracket"></i> Verify and Login</button>
+                </form>
+                {% elif verification_pending %}
+                <form method="POST" action="{{ url_for('verify_email') }}" class="auth-form">
+                    <input type="hidden" name="email" value="{{ email }}">
+                    <div class="form-group">
+                        <label for="code"><i class="fas fa-shield-halved"></i> Verification code</label>
+                        <input type="text" id="code" name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="Enter the 6-digit code" required autofocus>
+                        <small class="form-hint">Check {{ email }}. The code expires in 10 minutes.</small>
+                    </div>
+                    <button type="submit" class="auth-btn"><i class="fas fa-check"></i> Verify Gmail</button>
+                </form>
+                {% else %}
+                <form method="POST" action="{{ url_for('signup') }}" id="signup-form" novalidate class="auth-form">
+                    <div class="form-group">
+                        <label for="username">
+                            <i class="fas fa-user"></i> Username
+                        </label>
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Choose a username (min 3 characters)"
+                            required
+                            minlength="3"
+                            maxlength="80"
+                            pattern="^[a-zA-Z0-9_]+$"
+                            value="{{ username if username else '' }}"
+                        >
+                        <small class="form-hint" id="username-hint">
+                            <i class="fas fa-info-circle"></i> Letters, numbers, and underscore only
+                        </small>
+                        <div class="validation-message" id="username-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            placeholder="Enter your real Gmail address"
+                            required
+                            value="{{ email if email else '' }}"
+                        >
+                        <div class="validation-message" id="email-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <div class="password-wrapper">
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                placeholder="Create a password (min 6 characters)"
+                                required
+                                minlength="6"
+                            >
+                            <button type="button" class="toggle-password" onclick="togglePassword('password', 'toggle-icon-password')">
+                                <i class="fas fa-eye" id="toggle-icon-password"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-bar" id="strength-bar">
+                                <div class="strength-fill" id="strength-fill"></div>
+                            </div>
+                            <span class="strength-text" id="strength-text">Enter a password</span>
+                        </div>
+                        <div class="validation-message" id="password-error"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password">
+                            <i class="fas fa-check-circle"></i> Confirm Password
+                        </label>
+                        <div class="password-wrapper">
+                            <input
+                                type="password"
+                                id="confirm-password"
+                                name="confirm_password"
+                                placeholder="Confirm your password"
+                                required
+                                minlength="6"
+                            >
+                            <button type="button" class="toggle-password" onclick="togglePassword('confirm-password', 'toggle-icon-confirm')">
+                                <i class="fas fa-eye" id="toggle-icon-confirm"></i>
+                            </button>
+                        </div>
+                        <div class="validation-message" id="confirm-error"></div>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="terms-check">
+                            <input type="checkbox" name="terms" id="terms" required>
+                            I agree to the
+                            <a href="#" onclick="return false;">Terms of Service</a> and
+                            <a href="#" onclick="return false;">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="auth-btn" id="signup-btn">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </button>
+                </form>
+                {% endif %}
+
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+
+                <p class="auth-footer">
+                    Already have an account?
+                    <a href="{{ url_for('login') }}">Login</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    {% if not verification_pending and not login_otp_pending %}
+    <script>
+        function togglePassword(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(iconId);
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.className = 'fas fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.className = 'fas fa-eye';
+            }
+        }
+
+        const passwordInput = document.getElementById('password');
+        const strengthFill = document.getElementById('strength-fill');
+        const strengthText = document.getElementById('strength-text');
+
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            const strength = checkPasswordStrength(password);
+
+            strengthFill.style.width = strength.percentage + '%';
+            strengthFill.style.background = strength.color;
+            strengthText.textContent = strength.label;
+            strengthText.style.color = strength.color;
+        });
+
+        function checkPasswordStrength(password) {
+            let score = 0;
+
+            if (password.length === 0) {
+                return { percentage: 0, color: '#ccc', label: 'Enter a password' };
+            }
+
+            if (password.length >= 8) score += 25;
+            if (/[A-Z]/.test(password)) score += 25;
+            if (/[0-9]/.test(password)) score += 25;
+            if (/[^A-Za-z0-9]/.test(password)) score += 25;
+
+            if (score <= 25) {
+                return { percentage: 25, color: '#ff5f6d', label: 'Weak' };
+            }
+            if (score <= 50) {
+                return { percentage: 50, color: '#ffb020', label: 'Fair' };
+            }
+            if (score <= 75) {
+                return { percentage: 75, color: '#4ecdc4', label: 'Good' };
+            }
+            return { percentage: 100, color: '#2dd4bf', label: 'Strong' };
+        }
+
+        // ============================================
+        // FORM VALIDATION
+        // ============================================
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            let isValid = true;
+
+            // Validate username
+            const username = document.getElementById('username');
+            const usernameError = document.getElementById('username-error');
+            const usernamePattern = /^[a-zA-Z0-9_]+$/;
+
+            if (username.value.length < 3) {
+                usernameError.textContent = '❌ Username must be at least 3 characters';
+                usernameError.style.color = '#dc3545';
+                isValid = false;
+            } else if (!usernamePattern.test(username.value)) {
+                usernameError.textContent = '❌ Only letters, numbers, and underscore allowed';
+                usernameError.style.color = '#dc3545';
+                isValid = false;
+            } else {
+                usernameError.textContent = '✅ Valid username';
+                usernameError.style.color = '#28a745';
+            }
+
+            // Validate email
+            const email = document.getElementById('email');
+            const emailError = document.getElementById('email-error');
+            const emailPattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\.com$/i;
+            const disposableDomains = ['10minutemail.com', 'dispostable.com', 'emailondeck.com', 'guerrillamail.com', 'mailinator.com', 'temp-mail.org', 'temp-mail.io', 'tempmail.com', 'throwawaymail.com', 'trashmail.com', 'yopmail.com'];
+            const emailDomain = email.value.toLowerCase().split('@').pop();
+
+            if (disposableDomains.includes(emailDomain)) {
+                emailError.textContent = '❌ Temporary email addresses are not supported';
+                emailError.style.color = '#dc3545';
+                isValid = false;
+            } else if (!emailPattern.test(email.value)) {
+                emailError.textContent = '❌ Please enter a permanent Gmail address';
+                emailError.style.color = '#dc3545';
+                isValid = false;
+            } else {
+                emailError.textContent = '✅ Valid email';
+                emailError.style.color = '#28a745';
+            }
+
+            // Validate password
+            const password = document.getElementById('password');
+            const passwordError = document.getElementById('password-error');
+
+            if (password.value.length < 6) {
+                passwordError.textContent = '❌ Password must be at least 6 characters';
+                passwordError.style.color = '#dc3545';
+                isValid = false;
+            } else {
+                passwordError.textContent = '✅ Password length is good';
+                passwordError.style.color = '#28a745';
+            }
+
+            // Validate confirm password
+            const confirmPassword = document.getElementById('confirm-password');
+            const confirmError = document.getElementById('confirm-error');
+
+            if (confirmPassword.value !== password.value) {
+                confirmError.textContent = '❌ Passwords do not match';
+                confirmError.style.color = '#dc3545';
+                isValid = false;
+            } else if (confirmPassword.value.length > 0) {
+                confirmError.textContent = '✅ Passwords match';
+                confirmError.style.color = '#28a745';
+            }
+
+            // Validate terms
+            const terms = document.getElementById('terms');
+            if (!terms.checked) {
+                alert('Please agree to the Terms of Service and Privacy Policy');
+                isValid = false;
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
+        });
+
+        // ============================================
+        // REAL-TIME VALIDATION
+        // ============================================
+        // Username real-time validation
+        document.getElementById('username').addEventListener('input', function() {
+            const error = document.getElementById('username-error');
+            const pattern = /^[a-zA-Z0-9_]+$/;
+
+            if (this.value.length === 0) {
+                error.textContent = '';
+            } else if (this.value.length < 3) {
+                error.textContent = '⚠️ Use at least 3 characters';
+                error.style.color = '#fd7e14';
+            } else if (!pattern.test(this.value)) {
+                error.textContent = '❌ Only letters, numbers, and underscore';
+                error.style.color = '#dc3545';
+            } else {
+                error.textContent = '✅ Good username';
+                error.style.color = '#28a745';
+            }
+        });
+
+        // Email real-time validation
+        document.getElementById('email').addEventListener('input', function() {
+            const error = document.getElementById('email-error');
+            const pattern = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@gmail\.com$/i;
+            const disposableDomains = ['10minutemail.com', 'dispostable.com', 'emailondeck.com', 'guerrillamail.com', 'mailinator.com', 'temp-mail.org', 'temp-mail.io', 'tempmail.com', 'throwawaymail.com', 'trashmail.com', 'yopmail.com'];
+            const emailDomain = this.value.toLowerCase().split('@').pop();
+
+            if (this.value.length === 0) {
+                error.textContent = '';
+            } else if (disposableDomains.includes(emailDomain)) {
+                error.textContent = '❌ Temporary email addresses are not supported';
+                error.style.color = '#dc3545';
+            } else if (!pattern.test(this.value)) {
+                error.textContent = '❌ Use a permanent Gmail address';
+                error.style.color = '#dc3545';
+            } else {
+                error.textContent = '✅ Valid email';
+                error.style.color = '#28a745';
+            }
+        });
+
+        // Confirm password real-time validation
+        document.getElementById('confirm-password').addEventListener('input', function() {
+            const password = document.getElementById('password');
+            const error = document.getElementById('confirm-error');
+
+            if (this.value.length === 0) {
+                error.textContent = '';
+            } else if (this.value !== password.value) {
+                error.textContent = '❌ Passwords do not match';
+                error.style.color = '#dc3545';
+            } else {
+                error.textContent = '✅ Passwords match';
+                error.style.color = '#28a745';
+            }
+        });
+
+        // ============================================
+        // AUTO-DISMISS FLASH MESSAGES
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(msg) {
+                setTimeout(function() {
+                    msg.style.opacity = '0';
+                    msg.style.transform = 'translateY(-10px)';
+                    setTimeout(function() {
+                        msg.style.display = 'none';
+                    }, 300);
+                }, 5000);
+            });
+        });
+    </script>
+    {% endif %}
+</body>
+</html>

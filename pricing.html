@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Pricing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page pricing-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <main class="pricing-shell">
+        <div class="page-header">
+            <div>
+                <span class="eyebrow">AMAX PLANS</span>
+                <h1>Choose the workspace that fits you</h1>
+                <p class="section-intro">Upgrade to Pro with a secure UPI payment and submit your transaction ID for verification.</p>
+            </div>
+            <a href="{{ url_for('home') }}" class="btn btn-secondary">Home</a>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if payment_confirmed %}
+            <div class="payment-success-banner" id="payment-success-banner" aria-live="polite">
+                <div class="success-ring">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div>
+                    <strong>Payment confirmed</strong>
+                    <p>Pro has been unlocked successfully.</p>
+                </div>
+            </div>
+        {% endif %}
+
+        <section class="pricing-grid pricing-grid-page">
+            <article class="pricing-card">
+                <h2>Starter</h2>
+                <div class="price">Free</div>
+                <ul>
+                    <li>Basic AI chat</li>
+                    <li>Core app access</li>
+                    <li>Quick productivity pages</li>
+                </ul>
+                <a href="{{ url_for('signup') }}" class="btn btn-secondary">Create Free Account</a>
+            </article>
+
+            <article class="pricing-card featured-plan">
+                <span class="plan-tag">Popular</span>
+                <h2>Pro</h2>
+                <div class="price">₹{{ pro_price }}<span>/mo</span></div>
+                {% if pro_active %}
+                    <div class="pro-unlocked"><i class="fas fa-circle-check"></i> Pro Unlocked</div>
+                {% endif %}
+                <ul>
+                    <li>Unlimited chat</li>
+                    <li>Advanced AI pages</li>
+                    <li>Priority workflow tools</li>
+                </ul>
+                {% if upi_link %}
+                    <a href="{{ upi_link }}" class="btn btn-primary upi-pay-link" data-upi-pay><i class="fas fa-mobile-screen-button"></i> Pay with PhonePe / GPay</a>
+                    <p class="payment-note">The button opens your UPI app chooser. Pay to: <strong>{{ upi_id }}</strong></p>
+                    <div class="upi-qr-panel">
+                        <div id="upi-qr" class="upi-qr" data-upi-link="{{ upi_link }}" aria-label="Scan this QR code to pay with any UPI app"></div>
+                        <p class="payment-note"><i class="fas fa-qrcode"></i> Scan with PhonePe, Google Pay, or any UPI app</p>
+                    </div>
+                    <button type="button" class="copy-upi-btn" data-copy-upi="{{ upi_id }}"><i class="fas fa-copy"></i> Copy UPI ID</button>
+                {% elif upi_id %}
+                    <p class="payment-note">UPI payment details are ready. Please pay to: <strong>{{ upi_id }}</strong></p>
+                {% else %}
+                    <p class="payment-note">Payment details are currently being configured. Please contact support for the latest UPI ID.</p>
+                {% endif %}
+
+                {% if current_user.is_authenticated %}
+                    {% if not pro_active %}
+                        <form method="post" action="{{ url_for('confirm_pro_payment') }}" class="payment-form" id="utr-payment-form">
+                            <label for="transaction-id">UTR Code</label>
+                            <input id="transaction-id" name="utr_code" type="text" maxlength="120" required placeholder="Enter the UTR code after payment" autocomplete="off">
+                            <button type="submit" class="btn btn-secondary">Confirm Payment</button>
+                        </form>
+                        <p class="payment-note">After payment, enter the UTR/transaction number and we will confirm it instantly.</p>
+                    {% endif %}
+                {% else %}
+                    <p class="payment-note"><a href="{{ url_for('login') }}">Log in</a> before starting payment so Pro can be linked to your account.</p>
+                {% endif %}
+            </article>
+        </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script>
+        const upiQr = document.getElementById('upi-qr');
+        if (window.QRCode && upiQr) {
+            new QRCode(upiQr, {
+                text: upiQr.dataset.upiLink,
+                width: 220,
+                height: 220,
+                colorDark: '#07111f',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        const paymentSuccessBanner = document.getElementById('payment-success-banner');
+        if (paymentSuccessBanner) {
+            setTimeout(() => {
+                paymentSuccessBanner.classList.add('payment-success-banner-visible');
+            }, 50);
+            setTimeout(() => {
+                paymentSuccessBanner.classList.add('payment-success-banner-fadeout');
+            }, 2600);
+        }
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% if current_user.is_authenticated and not pro_active %}
+    <script>
+        setInterval(async () => {
+            try {
+                const response = await fetch('/api/pro-status');
+                const status = await response.json();
+                if (status.pro_active) window.location.reload();
+            } catch (error) {
+                console.debug('Waiting for payment confirmation');
+            }
+        }, 5000);
+    </script>
+    {% endif %}
+</body>
+</html>

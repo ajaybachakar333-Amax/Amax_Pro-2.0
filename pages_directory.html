@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Explore Pages</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="pages-shell">
+        <div class="page-header">
+            <div>
+                <span class="eyebrow">AMAX HUB</span>
+                <h1>{{ pages|length }} AI Experience Pages</h1>
+            </div>
+            <a href="/" class="btn btn-primary">Home</a>
+        </div>
+
+        <div class="page-grid">
+            {% for page in pages %}
+                <article class="page-card">
+                    <span class="chip">{{ page.category }}</span>
+                    <span class="chip">{{ page.badge }}</span>
+                    <h3>{{ page.title }}</h3>
+                    <p>{{ page.description }}</p>
+                    <a href="{{ url_for('page_detail', slug=page.slug) }}">Open page →</a>
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Settings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="settings-shell">
+        <div class="settings-header">
+            <div>
+                <span class="eyebrow">Settings</span>
+                <h1>Customize your workspace</h1>
+            </div>
+            <a href="/dashboard" class="btn btn-primary">Back</a>
+        </div>
+
+        <div class="settings-grid">
+            <div class="settings-card">
+                <h3>Appearance</h3>
+                <p>Choose theme, spacing, and work style preferences.</p>
+            </div>
+            <div class="settings-card">
+                <h3>Security</h3>
+                <p>Manage password protection and account sessions.</p>
+            </div>
+            <div class="settings-card">
+                <h3>Notifications</h3>
+                <p>Enable reminders, newsletters, and alerts.</p>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

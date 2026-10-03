@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Help Desk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page contact-page help-desk-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <main class="contact-card help-desk-card">
+        <div class="contact-icon">🛠</div>
+        <span class="eyebrow">HELP DESK</span>
+        <h1>How can we help?</h1>
+        <p>Tell us what went wrong or what you need help with. Your message will be saved for review.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" class="help-desk-form">
+            <div class="help-desk-fields">
+                <label>
+                    Your name
+                    <input type="text" name="name" value="{{ form.get('name', '') }}" maxlength="120" required>
+                </label>
+                <label>
+                    Email address
+                    <input type="email" name="email" value="{{ form.get('email', '') }}" maxlength="150" required>
+                </label>
+            </div>
+            <label>
+                Subject
+                <input type="text" name="subject" value="{{ form.get('subject', '') }}" maxlength="160" placeholder="What do you need help with?" required>
+            </label>
+            <label>
+                Describe the problem
+                <textarea name="message" rows="7" maxlength="5000" placeholder="Explain the issue and what you expected to happen..." required>{{ form.get('message', '') }}</textarea>
+            </label>
+            <div class="cta-buttons help-desk-actions">
+                <a href="{{ url_for('home') }}" class="btn btn-secondary">Back</a>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </div>
+        </form>
+    </main>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

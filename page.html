@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | {{ page.title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="pages-shell">
+        <div class="page-header">
+            <div>
+                <span class="eyebrow">{{ page.category }}</span>
+                <h1>{{ page.title }}</h1>
+            </div>
+            <div class="cta-buttons">
+                <a href="/pages" class="btn btn-secondary">All Pages</a>
+                <a href="/" class="btn btn-primary">Home</a>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <h3>{{ page.badge }} Feature</h3>
+            <p>{{ page.description }}</p>
+            <ul class="info-list feature-details">
+                {% for detail in page.details|default([
+                    'AI-first workflow experience',
+                    'Ready-made interface structure',
+                    'Built for productivity and creativity'
+                ]) %}
+                    <li>{{ detail }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

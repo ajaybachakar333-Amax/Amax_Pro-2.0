@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="dashboard-shell">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-stack">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="page-header">
+            <div>
+                <span class="eyebrow">Dashboard</span>
+                <h1>Welcome back, {{ user.username }}</h1>
+            </div>
+            <div class="cta-buttons">
+                <a href="/profile" class="btn btn-secondary">Profile</a>
+                <a href="{{ url_for('help_desk') }}" class="btn btn-secondary">Help Desk</a>
+                <a href="/logout" class="btn btn-primary">Logout</a>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div>
+                <div class="summary-cards">
+                    <div class="summary-card"><strong>128</strong><span>AI prompts</span></div>
+                    <div class="summary-card"><strong>24</strong><span>Tasks done</span></div>
+                    <div class="summary-card"><strong>92%</strong><span>Focus score</span></div>
+                </div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card"><strong>12</strong><span>Active projects</span></div>
+                    <div class="metric-card"><strong>8</strong><span>Saved notes</span></div>
+                    <div class="metric-card"><strong>4.8</strong><span>Productivity</span></div>
+                    <div class="metric-card"><strong>7</strong><span>Priorities</span></div>
+                </div>
+            </div>
+
+            <div class="summary-card">
+                <h3>Quick Links</h3>
+                {% if pro_active %}
+                    <div class="pro-unlocked"><i class="fas fa-circle-check"></i> Pro Unlocked</div>
+                {% endif %}
+                <div class="quick-links">
+                    {% for page in pages %}
+                        <a class="quick-link" href="{{ url_for('page_detail', slug=page.slug) }}">{{ page.title }}</a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

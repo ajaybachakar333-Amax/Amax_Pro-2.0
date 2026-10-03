@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX - Chat</title>
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Chat Page CSS (Agar style.css mein nahi hai toh yahan paste karo) -->
+    <style>
+        /* Agar tumne style.css mein chat wala CSS save nahi kiya hai, toh yahan paste karo */
+        /* Neeche wala code sirf emergency ke liye hai, tumhara asli CSS style.css mein hai */
+    </style>
+</head>
+<body class="dark-mode chat-page">
+
+    <aside id="chat-sidebar" class="chat-sidebar" aria-label="Chat conversations">
+            <div class="sidebar-heading">
+                <div>
+                    <span class="sidebar-kicker">AMAX</span>
+                    <h2>Conversations</h2>
+                </div>
+                <button id="close-sidebar-btn" class="sidebar-icon-btn" type="button" title="Close conversations" aria-label="Close conversations">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <button id="new-chat-btn" class="new-chat-btn" type="button">
+                <i class="fas fa-plus"></i>
+                <span>New Chat</span>
+            </button>
+            <div class="sidebar-section-label">Old Chats</div>
+            <div id="conversation-list" class="conversation-list">
+                {% for item in history %}
+                    <div class="conversation-item" data-chat-id="{{ item.id }}">
+                        <button class="conversation-open" type="button" data-message="{{ item.message|e }}" data-response="{{ item.response|e }}" title="Open conversation">
+                            <i class="fas fa-message"></i>
+                            <span>{{ item.message[:42] }}{% if item.message|length > 42 %}...{% endif %}</span>
+                        </button>
+                        <button class="conversation-delete" type="button" title="Delete conversation" aria-label="Delete conversation">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                {% else %}
+                    <p class="empty-conversations">Your old chats will appear here.</p>
+                {% endfor %}
+            </div>
+            <a class="sidebar-user" href="{{ url_for('profile') }}">
+                <span class="sidebar-avatar"><i class="fas fa-user"></i></span>
+                <span><strong>{{ current_user.username }}</strong><small>View profile</small></span>
+                <i class="fas fa-arrow-right"></i>
+            </a>
+    </aside>
+    <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
+
+    <div class="chat-container">
+        <!-- Header -->
+        <header>
+            <div class="brand">
+                <span class="logo-icon">⚡</span>
+                <div>
+                    <div class="brand-name">AMAX</div>
+                    <div class="brand-tagline">Intelligent AI Assistant</div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-name">
+                    <i class="fas fa-user-circle"></i>
+                    {{ current_user.username if current_user.is_authenticated else 'Guest' }}
+                </div>
+                <div class="header-actions">
+                    <button id="open-sidebar-btn" class="sidebar-toggle-btn" type="button" title="Open conversations" aria-label="Open conversations">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <a href="{{ url_for('pricing') }}" class="chat-pro-link{% if pro_active %} pro-unlocked-link{% endif %}" title="{{ 'Pro unlocked' if pro_active else 'Upgrade to Pro' }}"><i class="fas fa-crown"></i> {{ 'Pro Unlocked' if pro_active else 'Pro ₹1' }}</a>
+                    <button id="clear-history-btn" class="clear-btn" title="Clear Chat"><i class="fas fa-trash"></i> Clear</button>
+                    <button id="theme-toggle" class="theme-btn" title="Toggle Theme"><i class="fas fa-moon"></i></button>
+                    <div class="appearance-menu">
+                        <button id="appearance-btn" class="appearance-btn" type="button" title="Customize appearance" aria-label="Customize appearance" aria-expanded="false">
+                            <i class="fas fa-sliders"></i>
+                        </button>
+                        <div id="appearance-panel" class="appearance-panel" hidden>
+                            <strong>Appearance</strong>
+                            <div class="theme-options" role="group" aria-label="Theme">
+                                <button type="button" class="theme-option" data-theme-choice="light"><i class="fas fa-sun"></i> Light</button>
+                                <button type="button" class="theme-option" data-theme-choice="dark"><i class="fas fa-moon"></i> Dark</button>
+                            </div>
+                            <label class="wallpaper-label" for="wallpaper-input">Wallpaper</label>
+                            <div class="wallpaper-options">
+                                <button type="button" class="wallpaper-option wallpaper-default" data-wallpaper="" title="Default wallpaper" aria-label="Default wallpaper"></button>
+                                <button type="button" class="wallpaper-option wallpaper-aurora" data-wallpaper="aurora" title="Aurora wallpaper" aria-label="Aurora wallpaper"></button>
+                                <button type="button" class="wallpaper-option wallpaper-sunset" data-wallpaper="sunset" title="Sunset wallpaper" aria-label="Sunset wallpaper"></button>
+                                <label class="wallpaper-upload" for="wallpaper-input" title="Choose wallpaper">
+                                    <i class="fas fa-image"></i>
+                                    <input id="wallpaper-input" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+                                </label>
+                            </div>
+                            <button id="clear-wallpaper-btn" class="clear-wallpaper-btn" type="button">Remove wallpaper</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Chat Box (ID add kiya) -->
+        <div class="chat-box" id="chat-box">
+            <!-- Welcome Message -->
+            <div class="welcome-message" id="welcome-message">
+                <span class="welcome-icon">👋</span>
+                <h3>Welcome to AMAX!</h3>
+                <p>Ask me anything and I'll help you out.</p>
+                <div class="quick-suggestions">
+                    <button class="suggestion-btn" onclick="window.sendSuggestion('What is artificial intelligence?')">🤖 What is AI?</button>
+                    <button class="suggestion-btn" onclick="window.sendSuggestion('Tell me a fun fact')">💡 Fun fact</button>
+                    <button class="suggestion-btn" onclick="window.sendSuggestion('How does machine learning work?')">🧠 Machine Learning</button>
+                    <button class="suggestion-btn" onclick="window.sendSuggestion('What is the meaning of life?')">🌌 Life meaning</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator (ID add kiya) -->
+        <div class="typing-indicator" id="typing-indicator" role="status" aria-live="polite" aria-label="AMAX is thinking">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <span class="typing-text">AMAX is thinking</span>
+        </div>
+
+        <!-- Input Area (IDs add kiye) -->
+        <div class="input-area">
+            <form id="chat-form" class="input-wrapper">
+                <input id="image-input" type="file" accept="image/jpeg,image/png,image/gif,image/webp" hidden>
+                <button id="attach-btn" type="button" class="attach-btn" title="Attach an image" aria-label="Attach an image">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <textarea id="user-input" placeholder="Type your message here..." rows="1" autocomplete="off"></textarea>
+                <button id="send-btn" type="button" title="Send Message">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+            <div id="image-preview" class="image-preview" hidden>
+                <img id="image-preview-img" alt="Selected image preview">
+                <span id="image-preview-name"></span>
+                <button id="remove-image-btn" type="button" title="Remove image" aria-label="Remove image"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript (Real AI Response) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            
+            // DOM Elements
+            const chatBox = document.getElementById('chat-box');
+            const userInput = document.getElementById('user-input');
+            const sendBtn = document.getElementById('send-btn');
+            const chatForm = document.getElementById('chat-form');
+            const attachBtn = document.getElementById('attach-btn');
+            const imageInput = document.getElementById('image-input');
+            const imagePreview = document.getElementById('image-preview');
+            const imagePreviewImg = document.getElementById('image-preview-img');
+            const imagePreviewName = document.getElementById('image-preview-name');
+            const removeImageBtn = document.getElementById('remove-image-btn');
+            const clearBtn = document.getElementById('clear-history-btn');
+            const themeToggle = document.getElementById('theme-toggle');
+            const appearanceBtn = document.getElementById('appearance-btn');
+            const appearancePanel = document.getElementById('appearance-panel');
+            const wallpaperInput = document.getElementById('wallpaper-input');
+            const clearWallpaperBtn = document.getElementById('clear-wallpaper-btn');
+            const typingIndicator = document.getElementById('typing-indicator');
+            const typingText = typingIndicator ? typingIndicator.querySelector('.typing-text') : null;
+            const welcomeMessage = document.getElementById('welcome-message');
+            const chatContainer = document.querySelector('.chat-container');
+            const openSidebarBtn = document.getElementById('open-sidebar-btn');
+            const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const conversationList = document.getElementById('conversation-list');
+            const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+
+            // State
+            let isSending = false;
+            let currentTheme = localStorage.getItem('amax-theme') || 'light';
+            let currentWallpaper = localStorage.getItem('amax-wallpaper') || '';
+
+            // Initialize
+            applyTheme(currentTheme);
+            applyWallpaper(currentWallpaper);
+            setupAutoResize();
+            scrollToBottom();
+
+            // Event Listeners
+            if (sendBtn) sendBtn.addEventListener('click', sendMessage);
+            if (chatForm) chatForm.addEventListener('submit', function(event) {
+                event.preventDefault();
+                sendMessage();
+            });
+            if (attachBtn) attachBtn.addEventListener('click', () => imageInput.click());
+            if (imageInput) imageInput.addEventListener('change', handleImageSelect);
+            if (removeImageBtn) removeImageBtn.addEventListener('click', clearSelectedImage);
+            if (userInput) {
+                userInput.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+            }
+            if (clearBtn) clearBtn.addEventListener('click', clearHistory);
+            if (themeToggle) themeToggle.addEventListener('click', toggleTheme);
+            if (openSidebarBtn) openSidebarBtn.addEventListener('click', () => setSidebarOpen(true));
+            if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', () => setSidebarOpen(false));
+            if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', () => setSidebarOpen(false));
+            if (newChatBtn) newChatBtn.addEventListener('click', startNewChat);
+            document.querySelectorAll('.conversation-item').forEach(item => {
+                const openButton = item.querySelector('.conversation-open');
+                const deleteButton = item.querySelector('.conversation-delete');
+                if (openButton) {
+                    const title = generateConversationTitle(openButton.dataset.message || 'New conversation');
+                    const titleElement = openButton.querySelector('span');
+                    if (titleElement) titleElement.textContent = title;
+                    openButton.addEventListener('click', () => loadConversation(openButton.dataset.message, openButton.dataset.response));
+                }
+                if (deleteButton) deleteButton.addEventListener('click', event => deleteConversation(event, item));
+            });
+            setSidebarOpen(window.innerWidth > 680);
+            if (appearanceBtn) appearanceBtn.addEventListener('click', toggleAppearancePanel);
+            document.querySelectorAll('[data-theme-choice]').forEach(button => {
+                button.addEventListener('click', () => setTheme(button.dataset.themeChoice));
+            });
+            document.querySelectorAll('[data-wallpaper]').forEach(button => {
+                button.addEventListener('click', () => setWallpaper(button.dataset.wallpaper));
+            });
+            if (wallpaperInput) wallpaperInput.addEventListener('change', handleWallpaperSelect);
+            if (clearWallpaperBtn) clearWallpaperBtn.addEventListener('click', () => setWallpaper(''));
+
+            // Core Functions
+            async function sendMessage() {
+                if (isSending) return;
+
+                const message = userInput.value.trim();
+                const selectedImage = imageInput.files[0] || null;
+                if (!message && !selectedImage) return;
+
+                // Disable input while sending
+                isSending = true;
+                userInput.disabled = true;
+                sendBtn.disabled = true;
+                sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                // Remove welcome message
+                if (welcomeMessage) welcomeMessage.style.display = 'none';
+
+                // Add user message
+                addMessage(message || 'Image attached', 'user', null, selectedImage);
+
+                // Clear input
+                userInput.value = '';
+                userInput.style.height = 'auto';
+                clearSelectedImage();
+
+                // Show typing indicator
+                showTypingIndicator(Boolean(selectedImage));
+
+                try {
+                    const formData = new FormData();
+                    formData.append('message', message);
+                    if (selectedImage) formData.append('image', selectedImage);
+                    const response = await fetch('/api/chat', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'Server error');
+                    }
+
+                    // Hide typing indicator
+                    hideTypingIndicator();
+
+                    // Add AI response
+                    addMessage(data.reply, 'ai');
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    hideTypingIndicator();
+                    addMessage(`⚠️ ${error.message || 'Sorry, I encountered an error. Please try again.'}`, 'ai');
+                } finally {
+                    // Re-enable input
+                    isSending = false;
+                    userInput.disabled = false;
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                }
+            }
+
+            function addMessage(content, type, timestamp = null, image = null) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${type}-message`;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+
+                // Header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'message-header';
+
+                const strong = document.createElement('strong');
+                strong.textContent = type === 'user' ? 'You' : 'AMAX AI';
+                headerDiv.appendChild(strong);
+
+                // Timestamp
+                const now = new Date();
+                const messageTimestamp = timestamp || now.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                const timeSpan = document.createElement('span');
+                timeSpan.className = 'message-time';
+                timeSpan.textContent = messageTimestamp;
+                headerDiv.appendChild(timeSpan);
+
+                // Actions (for AI messages)
+                if (type === 'ai') {
+                    const copyBtn = document.createElement('button');
+                    copyBtn.className = 'copy-message-btn';
+                    copyBtn.title = 'Copy';
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
+                    copyBtn.addEventListener('click', function() {
+                        copyMessage(this);
+                    });
+                    headerDiv.appendChild(copyBtn);
+                }
+
+                contentDiv.appendChild(headerDiv);
+
+                // Message text
+                const p = document.createElement('p');
+                p.textContent = content;
+                contentDiv.appendChild(p);
+
+                if (image) {
+                    const imageElement = document.createElement('img');
+                    imageElement.className = 'message-image';
+                    imageElement.src = URL.createObjectURL(image);
+                    imageElement.alt = 'Uploaded image';
+                    imageElement.onload = () => URL.revokeObjectURL(imageElement.src);
+                    contentDiv.appendChild(imageElement);
+                }
+
+                messageDiv.appendChild(contentDiv);
+                chatBox.appendChild(messageDiv);
+
+                scrollToBottom();
+            }
+
+            function handleImageSelect() {
+                const selectedImage = imageInput.files[0];
+                if (!selectedImage) return;
+                if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(selectedImage.type)) {
+                    imageInput.value = '';
+                    alert('Please choose a JPG, PNG, GIF, or WEBP image.');
+                    return;
+                }
+                if (selectedImage.size > 4 * 1024 * 1024) {
+                    imageInput.value = '';
+                    alert('Please choose an image smaller than 4 MB.');
+                    return;
+                }
+                imagePreviewImg.src = URL.createObjectURL(selectedImage);
+                imagePreviewImg.onload = () => URL.revokeObjectURL(imagePreviewImg.src);
+                imagePreviewName.textContent = selectedImage.name;
+                imagePreview.hidden = false;
+            }
+
+            function clearSelectedImage() {
+                if (imageInput) imageInput.value = '';
+                if (imagePreview) imagePreview.hidden = true;
+                if (imagePreviewImg) imagePreviewImg.removeAttribute('src');
+                if (imagePreviewName) imagePreviewName.textContent = '';
+            }
+
+            // Helper Functions
+            function showTypingIndicator(isImageAnalysis = false) {
+                if (typingIndicator) {
+                    if (typingText) typingText.textContent = isImageAnalysis ? 'AMAX is analyzing' : 'AMAX is thinking';
+                    typingIndicator.classList.add('active');
+                    scrollToBottom();
+                }
+            }
+
+            function hideTypingIndicator() {
+                if (typingIndicator) {
+                    typingIndicator.classList.remove('active');
+                    if (typingText) typingText.textContent = 'AMAX is thinking';
+                }
+            }
+
+            function scrollToBottom() {
+                if (chatBox) {
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                }
+            }
+
+            function setSidebarOpen(isOpen) {
+                document.body.classList.toggle('sidebar-open', isOpen);
+                if (sidebarBackdrop) sidebarBackdrop.hidden = !isOpen;
+                if (openSidebarBtn) openSidebarBtn.setAttribute('aria-expanded', String(isOpen));
+            }
+
+            function clearVisibleMessages() {
+                chatBox.querySelectorAll('.message').forEach(message => message.remove());
+                const existingWelcome = chatBox.querySelector('.welcome-message');
+                if (existingWelcome) existingWelcome.remove();
+            }
+
+            function startNewChat() {
+                if (isSending) return;
+                clearVisibleMessages();
+                addWelcomeMessage();
+                userInput.value = '';
+                userInput.style.height = 'auto';
+                clearSelectedImage();
+                setSidebarOpen(false);
+                focusInput();
+            }
+
+            function loadConversation(message, response) {
+                clearVisibleMessages();
+                addMessage(message, 'user');
+                addMessage(response, 'ai');
+                setSidebarOpen(false);
+            }
+
+            function generateConversationTitle(message) {
+                const words = message.trim().split(/\s+/).filter(Boolean).slice(0, 6);
+                if (!words.length) return 'New conversation';
+                const title = words.join(' ');
+                return title.length > 38 ? `${title.slice(0, 38).trim()}...` : title;
+            }
+
+            async function deleteConversation(event, item) {
+                event.stopPropagation();
+                const chatId = item.dataset.chatId;
+                if (!chatId || !confirm('Delete this conversation?')) return;
+
+                try {
+                    const response = await fetch(`/api/chats/${chatId}`, { method: 'DELETE' });
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Unable to delete conversation');
+                    item.remove();
+                    if (!conversationList.querySelector('.conversation-item')) {
+                        const emptyMessage = document.createElement('p');
+                        emptyMessage.className = 'empty-conversations';
+                        emptyMessage.textContent = 'Your old chats will appear here.';
+                        conversationList.appendChild(emptyMessage);
+                    }
+                } catch (error) {
+                    console.error('Conversation deletion failed:', error);
+                    alert(error.message || 'Unable to delete conversation.');
+                }
+            }
+
+            function setupAutoResize() {
+                if (userInput) {
+                    userInput.addEventListener('input', function() {
+                        this.style.height = 'auto';
+                        this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+                    });
+                }
+            }
+
+            function focusInput() {
+                if (userInput) userInput.focus();
+            }
+
+            // Copy Message
+            function copyMessage(buttonElement) {
+                const messageContent = buttonElement.closest('.message-content');
+                const p = messageContent.querySelector('p');
+                const text = p.textContent;
+
+                navigator.clipboard.writeText(text).then(() => {
+                    const icon = buttonElement.querySelector('i');
+                    const originalClass = icon.className;
+
+                    icon.className = 'fas fa-check';
+                    buttonElement.style.color = '#28a745';
+
+                    setTimeout(() => {
+                        icon.className = originalClass;
+                        buttonElement.style.color = '';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            }
+
+            // Clear History
+            async function clearHistory() {
+                if (!confirm('Are you sure you want to clear all chat history?')) {
+                    return;
+                }
+
+                try {
+                    const messages = chatBox.querySelectorAll('.message');
+                    messages.forEach(msg => msg.remove());
+
+                    // Add welcome message back
+                    addWelcomeMessage();
+                } catch (error) {
+                    console.error('Error clearing history:', error);
+                }
+            }
+
+            function addWelcomeMessage() {
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'welcome-message';
+                welcomeDiv.innerHTML = `
+                    <span class="welcome-icon">👋</span>
+                    <h3>Welcome to AMAX!</h3>
+                    <p>Ask me anything and I'll help you out.</p>
+                    <div class="quick-suggestions">
+                        <button class="suggestion-btn" onclick="window.sendSuggestion('What is artificial intelligence?')">🤖 What is AI?</button>
+                        <button class="suggestion-btn" onclick="window.sendSuggestion('Tell me a fun fact')">💡 Fun fact</button>
+                        <button class="suggestion-btn" onclick="window.sendSuggestion('How does machine learning work?')">🧠 Machine Learning</button>
+                        <button class="suggestion-btn" onclick="window.sendSuggestion('What is the meaning of life?')">🌌 Life meaning</button>
+                    </div>
+                `;
+                chatBox.appendChild(welcomeDiv);
+            }
+
+            // Window sendSuggestion (for inline onclick)
+            window.sendSuggestion = function(text) {
+                if (userInput) {
+                    userInput.value = text;
+                    sendMessage();
+                }
+            };
+
+            // Theme Toggle
+            function toggleTheme() {
+                setTheme(currentTheme === 'light' ? 'dark' : 'light');
+            }
+
+            function applyTheme(theme) {
+                document.body.classList.toggle('dark-mode', theme === 'dark');
+                document.body.classList.toggle('light-mode', theme === 'light');
+                document.querySelectorAll('[data-theme-choice]').forEach(button => {
+                    button.classList.toggle('selected', button.dataset.themeChoice === theme);
+                });
+                if (themeToggle) {
+                    themeToggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+                    const icon = themeToggle.querySelector('i');
+                    if (icon) icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                }
+            }
+
+            function setTheme(theme) {
+                currentTheme = theme === 'dark' ? 'dark' : 'light';
+                localStorage.setItem('amax-theme', currentTheme);
+                applyTheme(currentTheme);
+            }
+
+            function toggleAppearancePanel() {
+                const isOpen = appearancePanel && !appearancePanel.hidden;
+                if (appearancePanel) appearancePanel.hidden = isOpen;
+                if (appearanceBtn) appearanceBtn.setAttribute('aria-expanded', String(!isOpen));
+            }
+
+            function setWallpaper(wallpaper) {
+                currentWallpaper = wallpaper;
+                localStorage.setItem('amax-wallpaper', wallpaper);
+                applyWallpaper(wallpaper);
+            }
+
+            function applyWallpaper(wallpaper) {
+                document.body.classList.toggle('has-wallpaper', Boolean(wallpaper));
+                document.body.classList.remove('wallpaper-aurora', 'wallpaper-sunset');
+                document.body.style.backgroundImage = '';
+                if (wallpaper === 'aurora' || wallpaper === 'sunset') {
+                    document.body.classList.add(`wallpaper-${wallpaper}`);
+                } else if (wallpaper) {
+                    document.body.style.backgroundImage = `url("${wallpaper}")`;
+                }
+                document.querySelectorAll('[data-wallpaper]').forEach(button => {
+                    button.classList.toggle('selected', button.dataset.wallpaper === wallpaper);
+                });
+            }
+
+            function handleWallpaperSelect() {
+                const file = wallpaperInput.files[0];
+                if (!file) return;
+                if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+                    wallpaperInput.value = '';
+                    alert('Please choose a JPG, PNG, or WEBP image.');
+                    return;
+                }
+                if (file.size > 2 * 1024 * 1024) {
+                    wallpaperInput.value = '';
+                    alert('Please choose a wallpaper smaller than 2 MB.');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.addEventListener('load', () => setWallpaper(reader.result));
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Contact</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page contact-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="contact-card card-glass">
+        <div class="contact-icon">📩</div>
+        <span class="eyebrow">CONTACT</span>
+        <h1>Let’s Connect</h1>
+        <p>
+            Need support, collaboration, or an upgrade for your AMAX project? Reach out to the developer directly.
+        </p>
+
+        <div class="contact-box">
+            <div><strong>Developer:</strong> AMAX Private Limited</div>
+            <div><strong>Email:</strong> <a class="contact-link" href="mailto:ajaybachkar02@gmail.com">ajaybachkar02@gmail.com</a></div>
+            <div><strong>Project:</strong> AMAX AI Assistant</div>
+            <div><strong>Social Media:</strong> <a class="contact-link" href="https://youtube.com/@ajaybachkarr?si=utY5iOr-KJ1WiBkF" target="_blank" rel="noopener noreferrer">YouTube @ajaybachkarr</a></div>
+        </div>
+
+        <div class="cta-buttons" style="justify-content:center; margin-top:24px;">
+            <a href="/" class="btn btn-primary">Back to Home</a>
+            <a href="/login" class="btn btn-secondary">Login</a>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

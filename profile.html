@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AMAX | Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="landing-page">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="profile-shell">
+        <div class="profile-header">
+            <div>
+                <span class="eyebrow">Profile</span>
+                <h1>{{ user.username }}</h1>
+            </div>
+            <div class="cta-buttons">
+                <a href="{{ url_for('home') }}" class="btn btn-secondary"><i class="fas fa-home"></i> Go to Home</a>
+                <a href="{{ url_for('chat') }}" class="btn btn-primary"><i class="fas fa-comments"></i> Go to Chat</a>
+                <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Dashboard</a>
+            </div>
+        </div>
+
+        <div class="profile-grid">
+            <div class="profile-card">
+                {% if user.profile_photo %}
+                    <img class="profile-avatar profile-photo" src="{{ url_for('uploaded_file', filename=user.profile_photo) }}" alt="Profile photo">
+                {% else %}
+                    <div class="profile-avatar">{{ (user.full_name or user.username)[0]|upper }}</div>
+                {% endif %}
+                <h3>Account Summary</h3>
+                <p class="plan-badge {{ 'plan-pro' if pro_active else 'plan-free' }}">
+                    <i class="fas {{ 'fa-crown' if pro_active else 'fa-user' }}"></i>
+                    {{ 'Pro Version' if pro_active else 'Free Version' }}
+                </p>
+                <form method="post" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" class="profile-form">
+                    <label for="profile_photo">Profile photo</label>
+                    <input id="profile_photo" name="profile_photo" type="file" accept="image/png,image/jpeg,image/gif,image/webp">
+                    <button type="submit" class="btn btn-primary">Save Photo</button>
+                </form>
+            </div>
+
+            <div class="info-card">
+                <h3>Personal Details</h3>
+                <form method="post" action="{{ url_for('update_profile') }}" class="profile-form">
+                    <label for="full_name">Full name</label>
+                    <input id="full_name" name="full_name" type="text" maxlength="150" value="{{ user.full_name or '' }}" placeholder="Your full name">
+                    <label for="date_of_birth">Date of birth</label>
+                    <input id="date_of_birth" name="date_of_birth" type="date" value="{{ user.date_of_birth.isoformat() if user.date_of_birth else '' }}">
+                    <label for="phone_number">Phone number</label>
+                    <input id="phone_number" name="phone_number" type="tel" maxlength="30" value="{{ user.phone_number or '' }}" placeholder="Your phone number">
+                    <button type="submit" class="btn btn-secondary">Save Details</button>
+                </form>
+                <ul class="info-list profile-meta">
+                    <li><strong>Username:</strong> {{ user.username }}</li>
+                    <li><strong>Email:</strong> {{ user.email }}</li>
+                    <li><strong>Status:</strong> Active</li>
+                    <li><strong>Plan:</strong> {{ 'Pro Version' if pro_active else 'Free Version' }}</li>
+                </ul>
+            </div>
+
+            <div class="info-card chat-history-card">
+                <div class="chat-history-heading">
+                    <h3>Chat History</h3>
+                    <div class="history-clear-controls">
+                        <label class="sr-only" for="history-clear-period">History period to clear</label>
+                        <select id="history-clear-period">
+                            <option value="last_2_days">Last 2 days</option>
+                            <option value="last_month">Last 1 month</option>
+                            <option value="all_time">All time</option>
+                        </select>
+                        <button id="clear-profile-history" class="history-clear-button" type="button">Clear history</button>
+                    </div>
+                </div>
+                {% if history %}
+                    <div class="chat-history-list">
+                        {% for chat in history %}
+                            <article class="history-item">
+                                <strong>{{ chat.message }}</strong>
+                                <p>{{ chat.response }}</p>
+                                <time>{{ chat.timestamp.strftime('%d %b %Y, %I:%M %p') }}</time>
+                            </article>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p>No chat history yet. Start a conversation from the chat page.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.getElementById('clear-profile-history').addEventListener('click', async function() {
+            const period = document.getElementById('history-clear-period');
+            const selectedPeriod = period.value;
+            const selectedLabel = period.options[period.selectedIndex].text;
+            if (!confirm(`Delete chat history for ${selectedLabel.toLowerCase()}? This cannot be undone.`)) return;
+
+            this.disabled = true;
+            period.disabled = true;
+            try {
+                const response = await fetch('/api/chats', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ period: selectedPeriod })
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Unable to clear chat history');
+                window.location.reload();
+            } catch (error) {
+                alert(error.message || 'Unable to clear chat history.');
+                this.disabled = false;
+                period.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
